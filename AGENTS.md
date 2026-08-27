@@ -101,6 +101,30 @@ Concrete decisions this workspace is set up around:
   Notion available; Google Docs planned.
 - **Skills & agents** extending the role live in [`.claude/`](.claude/).
 
+## Git Workflow & Versioning (tooling repo)
+
+Applies to **this** repository only — `local_documentation/`, whose origin is GitHub
+`Student-in-job/agentic_tech_writer` (the Agentic tooling: settings, commands/actions,
+rules, skills, agents, KB, templates). Analysis-target code repos on GitLab stay read-only.
+
+- **Branch:** do all work on **`dev`**. Never commit directly to `main`.
+- **Commits:** describe changes from the **Agentic-workflow** standpoint — what was added or
+  changed in *settings, actions/commands, rules, skills, agents, knowledge bases, templates*.
+- **Push:** push `dev` to origin.
+- **PR → main:** open a Pull Request `dev → main`.
+- **Approval gate (always):** ask the operator for explicit approval **before** opening /
+  merging the PR into `main`. Never merge without a clear "yes".
+- **Release tag** after the merge to `main`, SemVer `vX.Y.Z`:
+  - **Z (patch):** syntax fixes, edits/additions inside existing files, small fixes.
+  - **Y (minor):** new skills / agents / commands, or any change to the rules in
+    `AGENTS.md` or `CLAUDE.md` — the significant changes.
+  - **X (major):** bumped **manually only**, on an explicit "new version / bump major"
+    command from the operator.
+
+> [!NOTE]
+> Per the harness defaults, commit/push/PR are still operator-gated actions — this section
+> defines the *shape* of the flow; the approval gate above is the explicit checkpoint.
+
 ## Agent Workflows & Task Execution
 
 ### 1. Integration Risk Analysis
