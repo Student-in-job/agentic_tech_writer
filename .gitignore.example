@@ -1,0 +1,64 @@
+# .gitignore.example — sample ignore rules for the local_documentation workspace
+# ---------------------------------------------------------------------------
+# Copy to .gitignore to activate:   cp .gitignore.example .gitignore
+#
+# Policy:
+#   TRACK    everything that defines the agent / skills / AI assistance:
+#            .claude/ (agents, skills, knowledge bases), AGENTS.md, CLAUDE.md,
+#            GEMINI.md, README.md, templates/, mcp_config.json, git_mcp_server.py
+#   IGNORE   the working output: authored technical documentation and any
+#            scratch/working folders created while doing the work.
+# ---------------------------------------------------------------------------
+
+# --- Working folders (documentation work — NOT committed) ------------------
+# Project documents under observation and their drafts are working artifacts.
+docs/
+drafts/
+
+# Any other scratch/working directories created during work.
+scratch/
+tmp/
+tmp_*/
+out/
+export/
+_work/
+*.draft.md
+
+# --- Secrets & credentials (NEVER commit) ----------------------------------
+.env
+.env.*
+*.local.env
+*.token
+*.secret
+secrets/
+credentials.json
+
+# --- Local, per-user tool settings -----------------------------------------
+# Keep shared .claude/ (agents, skills, KB) tracked; ignore only local overrides.
+.claude/settings.local.json
+.claude/*.local.json
+
+# --- OS / editor cruft ------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# --- Python / tooling caches (git_mcp_server.py etc.) ----------------------
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ---------------------------------------------------------------------------
+# Explicitly KEPT tracked (documented for clarity — no rule needed):
+#   .claude/agents/**        AI subagents
+#   .claude/skills/**        skills + code-recon/knowledge/** knowledge bases
+#   templates/**             cross-project documentation template (tooling asset)
+#   AGENTS.md CLAUDE.md GEMINI.md README.md
+#   mcp_config.json git_mcp_server.py
+#   .gitignore.example
+# ---------------------------------------------------------------------------

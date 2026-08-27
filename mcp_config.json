@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "git_repository": {
+      "command": "python",
+      "args": ["c:/claude-workspace/local_documentation/git_mcp_server.py"],
+      "env": {
+        "GITLAB_URL": "https://git.ipoint.uz",
+        "GITLAB_TOKEN": "${GITLAB_TOKEN}",
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
