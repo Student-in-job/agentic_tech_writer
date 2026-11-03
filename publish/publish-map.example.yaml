@@ -1,0 +1,42 @@
+# publish-map — state for idempotent MD → KB publishing (example).
+# The real file is `publish-map.yaml` next to this one. It is STATE, not config:
+# the doc-publish skill writes entries here after each publish so re-publishing
+# UPDATES the existing page/file instead of creating a duplicate.
+#
+# Key   = document path, repo-relative (the canonical .md).
+# Value = one entry per backend the doc has been published to.
+#
+# Never put secrets here (no tokens). Only ids/urls the KB returns.
+
+docs/architecture/c4-context.md:
+  confluence:
+    id: "123456789"                      # Confluence page id (returned on create)
+    url: "https://kb.example.com/x/AbCdEf"
+    space: "CORE"
+    parent_id: "111111"
+    version: 3                           # Confluence page version (for update)
+    doc_version: "n/a"                   # value of the doc's frontmatter `version`
+    published_at: "2026-11-03T10:15:00Z"
+
+docs/business/requirements/frd.md:
+  notion:
+    id: "26f1c4a1-0000-4b00-8000-abcdef012345"   # Notion page id
+    url: "https://www.notion.so/26f1c4a1..."
+    parent_id: "1a2b3c4d-..."            # parent page / data source id
+    doc_version: "1.2.0"
+    published_at: "2026-11-03T10:20:00Z"
+  gdocs:
+    id: "1A2b3C4d5E..."                  # Google Docs file id
+    url: "https://docs.google.com/document/d/1A2b3C4d5E.../edit"
+    folder_id: "0B1c2D3e..."
+    doc_version: "1.2.0"
+    published_at: "2026-11-03T10:22:00Z"
+
+# unit: multi — a parent plus one child per unit; record the parent and each child.
+docs/architecture/data-model.md:
+  confluence:
+    id: "222222"
+    url: "https://kb.example.com/x/Parent"
+    children:
+      "docs/architecture/domains/calculation.md": { id: "222301", version: 1 }
+      "docs/architecture/domains/product.md":     { id: "222302", version: 1 }

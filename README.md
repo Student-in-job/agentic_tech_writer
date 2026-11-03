@@ -39,12 +39,16 @@ only) → operator's chat instructions.
 
 ## Integrations (MCP)
 
-| Purpose | MCP | Status |
-|---------|-----|--------|
+Docs are authored locally in **Markdown (canonical source of truth)**; publishing renders a
+copy to a KB via MCP + conversion scripts — manual and idempotent. See the pipeline in
+[`publish/README.md`](publish/README.md).
+
+| Purpose | MCP / transport | Status |
+|---------|-----------------|--------|
 | Inspect repos, verify current changes, keep docs in sync | git / GitLab / GitHub | active — [`git_mcp_server.py`](git_mcp_server.py), [`mcp_config.json`](mcp_config.json) |
-| Publish to corporate KB | Notion | available |
-| Publish to corporate KB | Confluence | planned |
-| Publish to corporate KB | Google Drive (Docs) | planned |
+| Publish MD → KB | Notion MCP | active |
+| Publish MD → KB | Google Docs connector | available |
+| Publish MD → KB | Confluence (REST script → Atlassian MCP later) | planned (base URL + space + token) |
 
 ## Layout
 
@@ -54,11 +58,19 @@ local_documentation/
 ├── README.md                           # this file
 ├── mcp_config.json / git_mcp_server.py # git MCP server
 ├── .claude/
-│   ├── skills/    code-recon · doc-template · diagram-builder · confluence-publish · doc-watch · kb-author
+│   ├── skills/    code-recon · doc-template · diagram-builder · doc-publish · confluence-publish · doc-watch · kb-author · template-library
 │   ├── agents/    tech-writer · code-analyst · analyst
-│   └── commands/  /recon · /document · /diagram · /doc-watch · /add-stack · /publish
-├── templates/
-│   └── project-doc-template.md         # the cross-project documentation template
+│   └── commands/  /recon · /document · /diagram · /doc-watch · /add-stack · /publish · /doc-new
+├── templates/                          # document template library (see templates/README.md)
+│   ├── project-doc-template.md · _meta-template.md
+│   ├── requirements/ (vision, frd, nfr, glossary) · architecture/ (adr, c4, data-model)
+│   ├── api/ (contract, library) · readme/ (service-readme)
+│   ├── user/ (user-guide, admin-guide, developer-portal)
+│   ├── partner/ (integration-registry, partner-spec-snapshot, partner-integration, legal-register)
+│   └── ops/ (deployment, runbook) · release/ (release-notes)
+├── publish/                            # MD → KB publication pipeline (scripts + publish-map)
+│   ├── README.md · publish-map.example.yaml
+│   └── scripts/ (frontmatter · md_to_confluence · md_to_notion · md_to_gdocs)
 ├── docs/                               # project documents under observation (empty)
 └── drafts/                             # work-in-progress documents (empty)
 ```
@@ -72,7 +84,8 @@ local_documentation/
 | `/diagram <type> for <subject>` | diagram-builder | one mandatory Mermaid diagram |
 | `/doc-watch [doc/repo]` | doc-watch | check `docs/` drift vs code |
 | `/add-stack <framework>` | kb-author | add a knowledge-base for a new stack |
-| `/publish <doc>` | confluence-publish | manual delivery to Confluence |
+| `/doc-new <kind> [backend]` | template-library | start a doc from a template / maintain the library |
+| `/publish <doc> [backend]` | doc-publish | manual delivery of a canonical .md to Confluence/Notion/Google Docs |
 
 ## Supported stacks & diagrams
 

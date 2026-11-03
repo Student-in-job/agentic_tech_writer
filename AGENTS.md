@@ -101,6 +101,40 @@ Concrete decisions this workspace is set up around:
   Notion available; Google Docs planned.
 - **Skills & agents** extending the role live in [`.claude/`](.claude/).
 
+## Documentation Format & Publication
+
+### Format — Markdown is the single source of truth
+
+- All documentation is **authored and maintained locally in Markdown (`.md`)** with YAML
+  frontmatter. The `.md` file in Git is the **canonical version** — the one we write,
+  review, version, and diff. Everything else is derived from it.
+- Copies in Confluence / Notion / Google Docs are **rendered outputs, never the source.**
+  Changes flow **MD → backend**, not back. If someone edits a published page, reconcile the
+  change into the `.md` first, then re-publish — do not treat the backend copy as truth.
+
+### Publication — MD → backends via MCP + scripts (operator-gated)
+
+Publishing is a separate, **operator-initiated** step (Operating Principles §4 — no
+auto-publish). It is **not** done on save, in bulk, or automatically. The pipeline for one
+document (see [`publish/README.md`](publish/README.md) for the concrete spec):
+
+1. **Route** — the `backend` + `target` frontmatter decide the destination (Confluence
+   space/parent · Notion parent · Google Drive folder). `unit: multi` → parent + children.
+2. **Convert** — a pure **script** turns canonical Markdown into the backend's format
+   (Confluence storage/ADF · Notion blocks · Google Docs requests), rewriting relative
+   links/`[[wikilinks]]` and handling images/attachments. Scripts are deterministic and
+   side-effect-free; they do not call out anywhere.
+3. **Transport via MCP** — the publish skill performs the actual create/update through the
+   backend's **MCP**: **Notion MCP** (`notion-create-pages` / `notion-update-page`),
+   **Google Docs connector**; **Confluence** via its REST API script until an Atlassian MCP
+   is wired. MCP calls live in the skill/agent, never inside the conversion scripts.
+4. **Idempotent create-or-update** — a sidecar **publish map**
+   ([`publish/publish-map.yaml`](publish/README.md)) records `doc → {backend: page/file id,
+   version, published_at}`, so re-publishing **updates the existing page** instead of
+   creating a duplicate. The map is state, kept out of the `.md` so documents stay clean.
+5. **Confirm** — report each page created/updated with its link; never publish without an
+   explicit operator "go".
+
 ## Git Workflow & Versioning (tooling repo)
 
 Applies to **this** repository only — `local_documentation/`, whose origin is GitHub
@@ -124,6 +158,77 @@ rules, skills, agents, KB, templates). Analysis-target code repos on GitLab stay
 > [!NOTE]
 > Per the harness defaults, commit/push/PR are still operator-gated actions — this section
 > defines the *shape* of the flow; the approval gate above is the explicit checkpoint.
+
+## Documentation Versioning (authored docs)
+
+> [!IMPORTANT]
+> This is a **different scope** from the section above. *Git Workflow & Versioning* versions
+> **this tooling repo** (skills/agents/templates). This section governs how the
+> **documentation we author** (the output of the templates) is versioned once it lives
+> beside a project's code or in a KB.
+
+**Core principle — do not version the documentation as one monolith.** Each group of
+documents has its own reason to change, so each gets its own versioning scheme. The only
+things they share: **Git as the single source of history**, and **frontmatter metadata** in
+every file.
+
+### Frontmatter metadata (every authored document)
+
+Every document carries a YAML frontmatter block. It extends the base authoring block
+(Operating Principles §3) with lifecycle/version fields:
+
+```yaml
+---
+title: Payment service — architecture
+author: System Architect Agent
+owner: payments-team          # accountable owner (mirrors CODEOWNERS)
+created: 2026-10-28
+updated: 2026-10-28
+version: 1.3.0                 # per-group scheme (see table); omit when "= service release"
+status: approved              # draft | review | approved | deprecated
+type: architecture | risk-analysis | specification | task | documentation
+applies_to: payment-service >= 2.4   # optional — the code/version this describes
+depends_on: [payment-api@2.x]        # optional — compat via links, not synced versions
+backend: confluence
+target: <space/parent or drive-folder or docs path>
+unit: single
+---
+```
+
+Markdown + frontmatter is readable by people, agents, and scripts (registry/CI can parse it).
+
+### Scheme per group
+
+| Group (our template ids) | How to version |
+|--------------------------|----------------|
+| **API contracts** — `api-contract`, `api-library` (OpenAPI/AsyncAPI/proto) | **Strict SemVer**: MAJOR = breaking, MINOR = new fields/endpoints, PATCH = descriptions. Live beside the service; CI checks backward-compat (`oasdiff`, `buf breaking`). |
+| **Architecture / data model / README** — `c4-architecture`, `data-model`, `service-readme` | Live **with the service code**; usually **no separate number** — version = the service's commit / release tag. Leave `version` out, set `applies_to`. |
+| **ADR** — `adr` | **Immutable & numbered** (`0007-use-kafka.md`). Never edited. If a decision changes, write a **new** ADR and mark the old `status: deprecated` + "superseded by 0012". A journal of decisions. |
+| **Requirements (PRD/SRS)** — `vision`, `frd`, `nfr`, `glossary` | Document `version` + a **changelog at the end**. Tag the repo on approval (`prd-billing-v2.0`). Every requirement keeps a **stable ID** (`REQ-BILL-014`) so tasks/tests/code can reference it. |
+| **User documentation** — `user-guide`, `admin-guide`, `developer-portal` | Tied to **product releases**: a branch or folder per supported major (`/docs/v3`, `/docs/v4`). Tools like Docusaurus or MkDocs + `mike` do this natively. |
+| **Partner documentation** — `integration-registry`, `partner-spec-snapshot`, `partner-integration` | Store a **snapshot with the partner's version** (`partners/acme-pay/api-v5.2-2026-09.pdf`). The integration registry records which partner API version we currently run on. |
+| **Operations** — `runbook`, `deployment` (runbook, IaC) | **As code, no numbers** — the current `main` branch is authoritative. |
+| **Release notes** — `release-notes` | Per product release; doubles as the user-facing changelog. |
+
+### Keeping the parts consistent
+
+- **Documentation registry/index:** a single file/page **generated by a script from the
+  frontmatter** — summary of document, version, status, owner, `updated`, and which service
+  version it applies to.
+- **Compatibility via links, not synchronized versions:** a document references a specific
+  version of another (`applies_to`, `depends_on: payment-api@2.x`) instead of waiting for a
+  shared "documentation release".
+- **Snapshots on key dates:** for an external audit, a milestone handover, or a major
+  release, tag the whole repo (`docs-release-2026-Q4`) for a consistent cross-section of all
+  documents at that moment.
+- **CI checks:** frontmatter validity, broken links, API backward-compat, and a staleness
+  signal (an `approved` document not updated in > N months → flag for review).
+- **CODEOWNERS:** every documentation folder has an owner; changes are not merged without
+  that owner's review. Keep `owner:` in frontmatter aligned with CODEOWNERS.
+
+**In short:** Git for history, SemVer **only** for contracts, immutable ADRs, release-tied
+versions for user docs, snapshots for partner docs; consistency comes from frontmatter, the
+registry, and tags — not from one global version number.
 
 ## Agent Workflows & Task Execution
 
