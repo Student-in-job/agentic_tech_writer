@@ -1,13 +1,21 @@
 ---
+title: <Project> — Technical Documentation
 author: System Architect Agent
+owner: <team/role>           # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
+updated: YYYY-MM-DD
+# version: n/a — lives with code; = analyzed ref / service release (AGENTS.md)
+status: draft                # draft | review | approved | deprecated
 type: documentation
 project: <project-name>
 repo: <git-url-or-path>
 ref: <branch-or-commit-sha-analyzed>
 stack: <laravel | quarkus | spring | fastapi | vue | mixed>
-doc_status: draft            # draft | review | published
-kb_target: confluence        # confluence | notion | gdocs
+applies_to: <service >= x.y>
+depends_on: []               # optional, e.g. [payment-api@2.x]
+backend: confluence          # confluence | notion | gdocs
+target: <space/parent or drive-folder or docs path>
+unit: single
 last_verified_commit: <sha>  # commit the docs were last checked against
 ---
 
