@@ -1,0 +1,51 @@
+# templates/coverage-profile.yaml
+#
+# The "definition of done" for a service's documentation set.
+# Used by the doc-coverage process to compute, per service, which documents are EXPECTED
+# and compare against what exists in docs/ + drafts/.
+#
+# A document type is EXPECTED for a service when **every facet in `when`** is present on that
+# service (registry.yaml → services.<svc>.facets). `tier` is how severe a gap is when the
+# document IS expected. `scope`: service-level vs business-project-level.
+#
+# Matching: a profile entry keys on `template` (the template id). An authored document is
+# matched to it by its own frontmatter `template:` field.
+
+version: 1
+
+# Facet vocabulary (declared per service in registry.yaml → facets):
+#   backend     — has backend code
+#   api         — exposes an API consumed by others (REST / JSON-RPC / gRPC)
+#   ui          — has a user-facing or admin UI
+#   db          — owns a database / persistent schema
+#   queues      — produces/consumes async messages
+#   partners    — integrates with external partners / regulators
+#   deployable  — is an independently deployed runtime
+#   library     — is a shared library / multi-module package
+
+documents:
+  # --- always expected (no condition) ---
+  - { template: service-readme,        category: readme,       tier: required,    when: [],           scope: service }
+  - { template: c4-architecture,       category: architecture, tier: required,    when: [],           scope: service }
+  - { template: adr,                   category: architecture, tier: recommended, when: [],           scope: service, multi: true }
+  - { template: nfr,                   category: requirements, tier: recommended, when: [],           scope: service }
+  - { template: glossary,              category: requirements, tier: optional,    when: [],           scope: service }
+
+  # --- conditional on facets ---
+  - { template: data-model,            category: architecture, tier: required,    when: [db],         scope: service }
+  - { template: api-contract,          category: api,          tier: required,    when: [api],        scope: service }
+  - { template: developer-portal,      category: user,         tier: recommended, when: [api],        scope: service }
+  - { template: api-library,           category: api,          tier: optional,    when: [library],    scope: service }
+  - { template: runbook,               category: ops,          tier: required,    when: [deployable], scope: service }
+  - { template: deployment,            category: ops,          tier: recommended, when: [deployable], scope: service }
+  - { template: release-notes,         category: release,      tier: recommended, when: [deployable], scope: service }
+  - { template: user-guide,            category: user,         tier: required,    when: [ui],         scope: service }
+  - { template: admin-guide,           category: user,         tier: recommended, when: [ui],         scope: service }
+  - { template: integration-registry,  category: partner,      tier: recommended, when: [partners],   scope: service }
+  - { template: partner-spec-snapshot, category: partner,      tier: recommended, when: [partners],   scope: service }
+  - { template: partner-integration,   category: partner,      tier: recommended, when: [partners],   scope: service }
+  - { template: legal-register,        category: partner,      tier: optional,    when: [partners],   scope: service }
+
+  # --- business-project level (checked per project, not per service) ---
+  - { template: vision,                category: requirements, tier: recommended, when: [],           scope: project }
+  - { template: frd,                   category: requirements, tier: optional,    when: [],           scope: project }

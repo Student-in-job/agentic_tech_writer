@@ -91,6 +91,15 @@ partner docs, "as-code" for ops). The authoritative rule, the per-group table, a
 frontmatter metadata (`version` / `status` / `owner` / `updated` / `applies_to` /
 `depends_on`) are in [`AGENTS.md` → Documentation Versioning](../AGENTS.md#documentation-versioning-authored-docs).
 
+## Coverage profile
+
+[`coverage-profile.yaml`](coverage-profile.yaml) is the **"definition of done"** for a
+service's documentation: each template id → `tier` (`required|recommended|optional`) + `when`
+(required facets) + `scope` (service/project). The **doc-coverage** skill (`/doc-coverage`)
+filters it by a service's `facets` (in [`docs/registry.yaml`](../docs/registry.yaml)) to compute
+what's expected, compares against `docs/`+`drafts/`, and reports the gaps. Keep this in sync
+when adding a template that services are expected to have.
+
 ## Adding a template
 
 Use the **template-library** skill (procedure B) or by hand:

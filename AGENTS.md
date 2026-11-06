@@ -101,6 +101,79 @@ Concrete decisions this workspace is set up around:
   Notion available; Google Docs planned.
 - **Skills & agents** extending the role live in [`.claude/`](.claude/).
 
+## Document Lifecycle & Storage (draft → approved → published)
+
+Where an authored document lives is driven by its `status:` frontmatter. Two folders:
+
+- **`drafts/`** — work in progress (`status: draft` | `review`). A scratch area; **nothing
+  here is canonical** and nothing here is published.
+- **`docs/`** — **approved canonical Markdown** (`status: approved`). This tree, in Git, is
+  the single source of truth. It is organized by the **aggregation layer** (projects →
+  services → repos), not by category alone:
+  - **`docs/services/<service>/<category>/`** — service-scoped docs. Each service has an
+    **`index.md`** card (bounded context, **code repositories**, doc index, integrations).
+    `<category>` ∈ `requirements` · `architecture` · `api` · `readme` · `user` · `partner` ·
+    `ops` · `release`.
+  - **`docs/projects/<project>/`** — cross-service **business-project** docs, with an
+    `index.md` card listing the member services.
+  - **`docs/_shared/<category>/`** — cross-cutting docs not tied to one service.
+  - **`docs/registry.yaml`** — the aggregation registry (see *Aggregation* below).
+
+**Flow (each step operator-gated; no step is automatic):**
+
+1. **Author** in `drafts/<name>.md` (via `doc-new`). `status: draft`.
+2. **Review** — operator reads; edits happen in place; `status: review`.
+3. **Approve** — on an explicit operator "go": set `status: approved`, refresh `updated:`,
+   and apply the group's scheme from *Documentation Versioning* (SemVer tag for contracts,
+   immutable id for ADRs, etc.).
+4. **Promote** — **move** `drafts/<name>.md` → `docs/<target>`. The filename stays stable
+   (it is the document's identity in the publish map). See `target:` semantics below.
+5. **Commit** — Git history *is* the version record (*Documentation Versioning*). Tag when
+   the group's scheme calls for it.
+6. **Publish (optional)** — a separate, operator-initiated step: `doc-publish` renders a copy
+   to the KB backend and records it in the publish map. The `.md` under `docs/` stays
+   canonical; the KB copy never becomes the source.
+
+**`target:` semantics** — the document's destination *for its `backend:`*:
+- `backend: md` → a **repo-relative path under this repo**, e.g.
+  `docs/services/mfo-service/architecture/data-model.md` (service-scoped),
+  `docs/projects/<project>/<name>.md` (cross-service), or `docs/_shared/<category>/<name>.md`.
+  This is where *Promote* moves the file; the `service:` / `project:` frontmatter picks the
+  branch.
+- `backend: confluence | notion | gdocs` → the **KB space / parent / Drive folder**; the
+  canonical `.md` still lives under the matching `docs/…` path by *Promote*.
+
+> [!IMPORTANT]
+> **Ownership / canonical home.** A document may *describe* a repo we do **not** own
+> (read-only analysis targets such as `nasiya/backend/mfo-service`). Its canonical home is
+> **always this repo's `docs/`**, regardless of which service it is about. Mirroring an
+> approved doc into the owning service's repo (true docs-as-code, next to the code) is a
+> **separate, optional MR to that team** — never the default, and never treated as the source
+> of truth here.
+
+### Aggregation (projects → services → repos)
+
+`docs/` is organized by an aggregation layer so documents group by what they describe, not
+only by category. This layer is **self-contained** — it is **not** derived from, and does not
+depend on, `SDLC/*.yaml` (this workspace's doc-tooling is standalone). Its purpose is the
+reverse: the approved docs under `docs/` are **pre-made knowledge that `sdlc-init` /
+`sdlc-analyze` consume as input**, so those stages start from an existing service picture
+instead of analyzing from scratch.
+
+- **`docs/registry.yaml`** — the single machine-readable map: each **service** → its **code
+  repositories**, bounded context, database, integrations, and doc folder; each **project** →
+  its member services. Produced/maintained by the doc-tooling agents; kept in sync with the
+  `docs/services|projects/` trees.
+- **Service card** (`docs/services/<service>/index.md`) — the human-readable counterpart:
+  what the service is, which repos make it up, the index of its docs (by category, with
+  status), and its integration points.
+- **Project card** (`docs/projects/<project>/index.md`) — a business project that spans
+  **one or more services**, listing its member services and cross-service docs.
+
+A **service** is composed of one or more **code repositories** (e.g. backend + frontend); the
+registry's `repos:` list is the source for that mapping. A document joins the layer through
+its `service:` / `project:` frontmatter.
+
 ## Documentation Format & Publication
 
 ### Format — Markdown is the single source of truth
@@ -148,12 +221,16 @@ rules, skills, agents, KB, templates). Analysis-target code repos on GitLab stay
 - **PR → main:** open a Pull Request `dev → main`.
 - **Approval gate (always):** ask the operator for explicit approval **before** opening /
   merging the PR into `main`. Never merge without a clear "yes".
-- **Release tag** after the merge to `main`, SemVer `vX.Y.Z`:
+- **Release tag** after the merge to `main`, `vX.Y.Z`:
   - **Z (patch):** syntax fixes, edits/additions inside existing files, small fixes.
   - **Y (minor):** new skills / agents / commands, or any change to the rules in
     `AGENTS.md` or `CLAUDE.md` — the significant changes.
   - **X (major):** bumped **manually only**, on an explicit "new version / bump major"
     command from the operator.
+  - **PATCH starts at `1`, never `0`.** A `.0` reads like an unfinished draft, so a release
+    is never tagged `vX.Y.0`. On a **Y (minor)** or **X (major)** bump, the first release at
+    that version is tagged `.1` (e.g. `v0.3.1`, not `v0.3.0`); further patches on it go `.2`,
+    `.3`, … So the sequence is `…v0.2.z → v0.3.1 → v0.3.2 → …`.
 
 > [!NOTE]
 > Per the harness defaults, commit/push/PR are still operator-gated actions — this section
@@ -187,6 +264,8 @@ updated: 2026-10-28
 version: 1.3.0                 # per-group scheme (see table); omit when "= service release"
 status: approved              # draft | review | approved | deprecated
 type: architecture | risk-analysis | specification | task | documentation
+service: payment-service             # aggregation key → docs/services/<service>/ (registry.yaml)
+project: payments-platform           # optional — business project the service belongs to
 applies_to: payment-service >= 2.4   # optional — the code/version this describes
 depends_on: [payment-api@2.x]        # optional — compat via links, not synced versions
 backend: confluence
@@ -196,6 +275,8 @@ unit: single
 ```
 
 Markdown + frontmatter is readable by people, agents, and scripts (registry/CI can parse it).
+`service:` / `project:` tie the document into the aggregation layer (*Document Lifecycle &
+Storage* → *Aggregation*); a cross-service document sets `project:` and omits `service:`.
 
 ### Scheme per group
 
