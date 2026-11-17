@@ -21,7 +21,7 @@ author: System Architect Agent
 owner: <team/role>            # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-version: 0.1.0                # SemVer per unit (contracts); CI oasdiff / buf breaking
+version: 0.1.1                # SemVer per unit (contracts); CI oasdiff / buf breaking
 status: draft                # draft | review | approved | deprecated
 type: documentation
 applies_to: <platform >= x.y>  # optional

@@ -9,7 +9,7 @@ Actual set:    frontmatter `template:` + `status:` of docs under docs/ and draft
 
 Usage:
   python scripts/doc_coverage.py --service mfo-service
-  python scripts/doc_coverage.py --project mfo-carveout
+  python scripts/doc_coverage.py --project mfo-core
   python scripts/doc_coverage.py --all
 """
 from __future__ import annotations
@@ -66,11 +66,12 @@ def scan_docs() -> list[dict]:
 
 
 def doc_state(status: str) -> str:
-    if status == "approved":
+    # "accepted" is the terminal approved state for ADRs (own enum: proposed|accepted|…).
+    if status in ("approved", "accepted"):
         return "present"
-    if status == "deprecated":
-        return "missing"   # a deprecated doc does not satisfy coverage
-    return "draft"          # draft | review | anything else in progress
+    if status in ("deprecated", "superseded"):
+        return "missing"   # a deprecated/superseded doc does not satisfy coverage
+    return "draft"          # draft | review | proposed | anything else in progress
 
 
 def coverage(scope: str, name: str, profile: list[dict], registry: dict, docs: list[dict]) -> dict:

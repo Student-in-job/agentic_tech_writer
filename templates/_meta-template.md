@@ -28,7 +28,7 @@ author: System Architect Agent
 owner: <team/role>             # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-version: 0.1.0                 # per-group scheme — see AGENTS.md "Documentation Versioning".
+version: 0.1.1                 # per-group scheme — see AGENTS.md "Documentation Versioning".
                                # OMIT for architecture/data-model/readme/ops (version = service release).
 status: draft                  # draft | review | approved | deprecated
 type: <architecture | risk-analysis | specification | task | documentation>

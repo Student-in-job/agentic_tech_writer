@@ -261,7 +261,7 @@ author: System Architect Agent
 owner: payments-team          # accountable owner (mirrors CODEOWNERS)
 created: 2026-10-28
 updated: 2026-10-28
-version: 1.3.0                 # per-group scheme (see table); omit when "= service release"
+version: 1.3.1                 # per-group scheme (see table); PATCH starts at 1; omit when "= service release"
 status: approved              # draft | review | approved | deprecated
 type: architecture | risk-analysis | specification | task | documentation
 service: payment-service             # aggregation key → docs/services/<service>/ (registry.yaml)
@@ -290,6 +290,26 @@ Storage* → *Aggregation*); a cross-service document sets `project:` and omits 
 | **Partner documentation** — `integration-registry`, `partner-spec-snapshot`, `partner-integration` | Store a **snapshot with the partner's version** (`partners/acme-pay/api-v5.2-2026-09.pdf`). The integration registry records which partner API version we currently run on. |
 | **Operations** — `runbook`, `deployment` (runbook, IaC) | **As code, no numbers** — the current `main` branch is authoritative. |
 | **Release notes** — `release-notes` | Per product release; doubles as the user-facing changelog. |
+
+### PATCH starts at `1` (every numbered document)
+
+The tooling-repo rule (*Git Workflow & Versioning* → release tag) applies to **authored
+documents** as well: wherever a document carries an `X.Y.Z` number in `version:`, the
+**PATCH component starts at `1` and is never `0`** — a `.0` reads like an unfinished draft.
+
+- **First version** of a new document is **`0.1.1`** (not `0.1.0`). All templates ship with
+  `version: 0.1.1`.
+- On a **MINOR** or **MAJOR** bump, PATCH resets to **`1`**, not `0`:
+  `0.1.3 → 0.2.1`, `0.9.2 → 1.0.1`. Further patches go `.2`, `.3`, …
+- The meaning of the components is unchanged (per-group scheme above; for contracts —
+  MAJOR breaking · MINOR new fields/endpoints · PATCH descriptions). Only the numbering of
+  PATCH shifts by one.
+- The **changelog** at the end of the document uses the same numbers — there is no `X.Y.0` row.
+- **Out of scope:** versions we do not own and only quote — the product/service release in
+  `release-notes`, a partner's API version in snapshots, `openrpc.json` / OpenAPI
+  `info.version` of the code, `applies_to` / `depends_on`. They are recorded as-is.
+- Documents with no number (`c4-architecture`, `data-model`, `service-readme`, `runbook`,
+  `deployment`, ADRs) are unaffected.
 
 ### Keeping the parts consistent
 

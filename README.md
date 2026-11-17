@@ -60,7 +60,7 @@ local_documentation/
 ├── .claude/
 │   ├── skills/    code-recon · doc-template · diagram-builder · doc-publish · confluence-publish · doc-watch · kb-author · template-library · doc-coverage
 │   ├── agents/    tech-writer · code-analyst · analyst
-│   └── commands/  /recon · /document · /diagram · /doc-watch · /add-stack · /publish · /doc-new · /doc-coverage
+│   └── commands/  /recon · /document · /diagram · /doc-watch · /add-stack · /publish · /doc-new · /doc-coverage · /docs-export
 ├── templates/                          # document template library (see templates/README.md)
 │   ├── project-doc-template.md · _meta-template.md
 │   ├── requirements/ (vision, frd, nfr, glossary) · architecture/ (adr, c4, data-model)
@@ -90,6 +90,7 @@ local_documentation/
 | `/add-stack <framework>` | kb-author | add a knowledge-base for a new stack |
 | `/doc-new <kind> [backend]` | template-library | start a doc from a template / maintain the library |
 | `/publish <doc> [backend]` | doc-publish | manual delivery of a canonical .md to Confluence/Notion/Google Docs |
+| `/docs-export <type> <source> <destination>` | scripts/docs_export.py | bulk export of a service/project to Google Docs (.docx in Drive), PDF, Notion or Confluence: one folder per doc type, table of contents, diagrams as SVG + draw.io |
 | `/doc-coverage <service\|project>` | doc-coverage | assess doc completeness vs the coverage profile; decide gaps (create / defer / N/A) |
 
 ## Supported stacks & diagrams

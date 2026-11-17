@@ -60,6 +60,21 @@ repo-relative path, then by backend. Example: [`publish-map.example.yaml`](publi
 Re-publishing a doc that already has an id **updates** that object; it never creates a
 duplicate. Deleting a mapping (or passing `--new`) forces a fresh create.
 
+## Bulk export — `scripts/docs_export.py` (`/docs-export`)
+
+`/publish` delivers **one** document. To export **everything approved** for a service or a
+project in one go, use [`/docs-export`](../.claude/commands/docs-export.md):
+
+```
+python scripts/docs_export.py <gdocs|pdf|notion|confluence> <service|project> "<destination>" [--dry-run] [--links FILE]
+```
+
+It scans `docs/services/<service>/`, renders Mermaid diagrams (SVG + PNG + draw.io) with an
+installed Chrome/Edge, and writes `docs/<project>/services/<service>/<Type>/<doc>` plus a table
+of contents and a `diagrams/` folder. `gdocs` writes `.docx` straight into a Google Drive folder
+through Google Drive for desktop and `pdf` into a local directory; `notion` / `confluence` produce
+a bundle in `out/export/` that the agent transports via MCP. State lives in `publish-map.yaml`.
+
 ## Scripts
 
 Pure converters in [`scripts/`](scripts/) — run them standalone to preview output; they
