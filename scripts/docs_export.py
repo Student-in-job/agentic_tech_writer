@@ -468,6 +468,28 @@ def export(args) -> int:
             shutil.copyfile(staged, target)           # overwrite in place: the Drive file id is kept
             state[relp] = digest
             copied += 1
+        # Files this exporter wrote earlier that are no longer produced (renamed diagram, removed doc).
+        planned = {relp for _, relp in plan}
+        roots = tuple(s["root"] + "/" for s in manifest["services"])
+        stale = sorted(r for r in state if r not in planned and r.startswith(roots))
+        for relp in stale:
+            if not args.prune:
+                continue
+            target = dest_root / relp
+            if target.exists():
+                target.unlink()                       # in a Drive folder this moves the file to the Drive trash
+            state.pop(relp, None)
+            for key in [k for k, v in pmap.items() if (v.get(kind) or {}).get("path") == relp]:
+                pmap[key].pop(kind, None)
+                if not pmap[key]:
+                    pmap.pop(key)
+        if stale:
+            verb = "removed" if args.prune else "left in place (re-run with --prune to remove)"
+            print(f"stale files {verb}:")
+            for r in stale:
+                print(f"  {r}")
+            if args.prune:
+                save_map(pmap)
         state_file.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
         print(f"\nwritten to {dest_root}: {copied} file(s) copied, {unchanged} unchanged")
     else:
@@ -601,6 +623,8 @@ def main() -> int:
     ap.add_argument("destination", help="Drive folder / local directory / target label")
     ap.add_argument("--dry-run", action="store_true", help="print the plan; build and write nothing")
     ap.add_argument("--links", help="JSON {dest path: {id, url}} with resolved URLs of exported files")
+    ap.add_argument("--prune", action="store_true",
+                    help="remove files written by an earlier export that are no longer produced")
     args = ap.parse_args()
     try:
         sys.stdout.reconfigure(encoding="utf-8")

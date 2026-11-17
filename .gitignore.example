@@ -24,6 +24,10 @@ export/
 _work/
 *.draft.md
 
+# Publish / export state: ids and urls of published pages and files (per project, not tooling).
+# The tracked sample is publish/publish-map.example.yaml.
+publish/publish-map.yaml
+
 # --- Secrets & credentials (NEVER commit) ----------------------------------
 .env
 .env.*
