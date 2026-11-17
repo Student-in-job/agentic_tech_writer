@@ -13,7 +13,7 @@ author: System Architect Agent
 owner: <team/role>            # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-version: 0.1.0                # tied to product/API release; folder per major (AGENTS.md)
+version: 0.1.1                # tied to product/API release; folder per major (AGENTS.md)
 status: draft                # draft | review | approved | deprecated
 type: documentation
 applies_to: <api >= x.y>      # API/product version this portal documents

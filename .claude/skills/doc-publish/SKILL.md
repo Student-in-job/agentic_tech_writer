@@ -50,6 +50,10 @@ rendered output. See [`publish/README.md`](../../../publish/README.md) for the p
 | `confluence` | `confluence-publish` (REST) → Atlassian MCP later | planned (needs base URL + space + token) |
 | `md` | already canonical — no external publish | n/a |
 
+For a **whole service or project** (not one document) use `/docs-export` →
+[`scripts/docs_export.py`](../../../scripts/docs_export.py): it builds the full tree (one folder per
+document type, table of contents, diagrams) for Google Docs, PDF, Notion or Confluence.
+
 ## Rules
 
 - **MD → backend only.** Never treat a published page as the source. If a page was edited in

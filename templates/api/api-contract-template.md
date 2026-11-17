@@ -13,7 +13,7 @@ author: System Architect Agent
 owner: <team/role>            # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-version: 0.1.0                # SemVer: MAJOR breaking · MINOR new fields/endpoints · PATCH docs
+version: 0.1.1                # SemVer: MAJOR breaking · MINOR new fields/endpoints · PATCH docs
 status: draft                # draft | review | approved | deprecated
 type: specification
 applies_to: <service >= x.y>  # the service this contract belongs to

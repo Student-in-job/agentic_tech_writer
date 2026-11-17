@@ -13,7 +13,7 @@ author: System Architect Agent
 owner: <team/role>            # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-version: 0.1.0                # doc version; changelog at end
+version: 0.1.1                # doc version; changelog at end
 status: draft                # draft | review | approved | deprecated
 type: documentation
 applies_to: <service >= x.y>  # optional

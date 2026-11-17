@@ -13,7 +13,7 @@ author: System Architect Agent
 owner: <team/role>            # accountable owner (mirrors CODEOWNERS)
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-version: 0.1.0                # register version (pointers only — no contract content)
+version: 0.1.1                # register version (pointers only — no contract content)
 status: draft                # draft | review | approved | deprecated
 type: documentation
 applies_to:                   # n/a
