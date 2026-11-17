@@ -26,6 +26,7 @@ from pathlib import Path
 
 MERMAID_VERSION = "11.4.1"
 MERMAID_CDN = f"https://cdn.jsdelivr.net/npm/mermaid@{MERMAID_VERSION}/dist/mermaid.min.js"
+RENDER_REV = "r2"        # bump when the render settings in _PAGE change: invalidates the diagram cache
 
 _BROWSER_CANDIDATES = [
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -45,7 +46,10 @@ _PAGE = """<!doctype html><html><head><meta charset="utf-8">
   const res = document.getElementById('res');
   try {{
     mermaid.initialize({{startOnLoad:false, theme:'default', securityLevel:'strict',
-      htmlLabels:false, flowchart:{{htmlLabels:false}}, fontFamily:'Arial, Helvetica, sans-serif'}});
+      htmlLabels:false, flowchart:{{htmlLabels:false}}, fontFamily:'Arial, Helvetica, sans-serif',
+      // opaque label backgrounds: an edge must not show through the text of a label it crosses
+      themeVariables:{{edgeLabelBackground:'#ffffff'}},
+      themeCSS:'.edgeLabel rect,.edgeLabel .background,.labelBkg{{fill:#ffffff !important;opacity:1 !important;background-color:#ffffff !important}}'}});
     const src = document.getElementById('src').textContent;
     const r = await mermaid.render('dgm', src);
     document.getElementById('out').innerHTML = r.svg;
@@ -103,10 +107,16 @@ def _run(browser: str, args: list[str], timeout: int = 90) -> bytes:
 
 
 def kind_of(source: str) -> str:
-    for line in source.splitlines():
+    """Diagram type keyword (flowchart, erDiagram, …), skipping a `--- title: … ---` block."""
+    in_front = False
+    for n, line in enumerate(source.strip().splitlines()):
         s = line.strip()
-        if s and not s.startswith("%%"):
-            return re.split(r"[\s;]", s, maxsplit=1)[0]
+        if s == "---" and (n == 0 or in_front):
+            in_front = not in_front
+            continue
+        if in_front or not s or s.startswith("%%"):
+            continue
+        return re.split(r"[\s;]", s, maxsplit=1)[0]
     return "diagram"
 
 
@@ -131,7 +141,7 @@ def render(d: Diagram, out_dir: Path, browser: str | None = None, cache: bool = 
     out_dir = out_dir.resolve()      # Chrome needs an absolute --screenshot path
     out_dir.mkdir(parents=True, exist_ok=True)
     browser = browser or find_browser()
-    digest = hashlib.sha256((MERMAID_VERSION + "\n" + d.source).encode("utf-8")).hexdigest()[:16]
+    digest = hashlib.sha256((MERMAID_VERSION + RENDER_REV + "\n" + d.source).encode("utf-8")).hexdigest()[:16]
     svg_p, png_p, dio_p = (out_dir / f"{d.name}{ext}" for ext in (".svg", ".png", ".drawio"))
     stamp = out_dir / f".{d.name}.hash"
     if cache and stamp.exists() and stamp.read_text() == digest and svg_p.exists() and png_p.exists():
